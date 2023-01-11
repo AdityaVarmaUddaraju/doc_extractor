@@ -2,7 +2,7 @@
 name = "doc-extractor"
 version = "0.1.0"
 description = ""
-authors = ["Your Name <you@example.com>"]
+authors = ["Aditya Varma Uddaraju <adithya951@gmail.com>"]
 readme = "README.md"
 packages = [{include = "doc_extractor"}]
 
