@@ -8,6 +8,8 @@ import os
 import pdfplumber
 import docx2txt
 import html2text
+from PyPDF2 import PdfReader
+
 
 def get_file_ext(filepath) -> str:
     """
@@ -41,9 +43,11 @@ def read_pdf(filepath) -> str:
     :return: text present in pdf
     """
     text = ""
-    with pdfplumber.open(filepath) as pdf:
-        for page in pdf.pages:
-            text += page.extract_text(layout=True)
+    
+    reader = PdfReader(filepath)
+    
+    for page in reader.pages:
+        text += page.extract_text()
 
     return text.strip()
 
