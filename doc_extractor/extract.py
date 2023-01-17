@@ -21,15 +21,7 @@ class PdfExtractors(Enum):
     TIKA = 'TIKA'
 
 
-def get_file_ext(filepath: str) -> str:
-    """
-    Get extension of the file
 
-    :param filepath: path of the paths
-    :return: file extension
-    """
-    split_tup = os.path.splitext(filepath)
-    return split_tup[1]
 
 
 class ExtractTextFromFile:
@@ -43,6 +35,15 @@ class ExtractTextFromFile:
         self.filepath = filepath
         self.pdf_extractor = pdf_extractor
 
+    def get_file_ext(self) -> str:
+        """
+        Get extension of the file
+
+        :return: file extension
+        """
+        split_tup = os.path.splitext(self.filepath)
+        return split_tup[1]
+
     def extract(self):
         """
         Extract text from file
@@ -50,14 +51,20 @@ class ExtractTextFromFile:
         :return: text present in the file
         """
 
-        file_ext = get_file_ext(self.filepath)
+        file_ext = self.get_file_ext()
 
         if file_ext == '.pdf':
-            self.read_pdf(self.filepath)
+            self.read_pdf()
+        elif file_ext == '.docx':
+            self.read_docx()
+        elif file_ext == '.html':
+            self.read_html()
+        elif file_ext == '.txt':
+            self.read_txt()
 
         return self
 
-    def read_file(self, filepath: str) -> str:
+    def read_file(self) -> str:
         """
         Read content from a file
 
@@ -66,12 +73,12 @@ class ExtractTextFromFile:
         """
 
         text = ""
-        with open(filepath, 'r') as f:
+        with open(self.filepath, 'r') as f:
             text = f.read()
 
         return text
 
-    def read_pdf(self, filepath: str):
+    def read_pdf(self):
         """
         Extract text from pdf files
 
@@ -81,19 +88,19 @@ class ExtractTextFromFile:
         text = ""
 
         if self.pdf_extractor == PdfExtractors.PDFREADER:
-            reader = PdfReader(filepath)
+            reader = PdfReader(self.filepath)
 
             for page in reader.pages:
                 text += page.extract_text()
 
             self.text = text.strip()
         elif self.pdf_extractor == PdfExtractors.TIKA:
-            parsed = parser.from_file(filepath)
+            parsed = parser.from_file(self.filepath)
             self.text = parsed["content"]
 
         return self
 
-    def read_docx(self, filepath: str):
+    def read_docx(self):
         """
         Extract text from docx files
 
@@ -101,7 +108,7 @@ class ExtractTextFromFile:
         :return: text present in docx file
         """
 
-        self.text = docx2txt.process(filepath)
+        self.text = docx2txt.process(self.filepath)
         return self
 
     def read_txt(self):
@@ -111,7 +118,7 @@ class ExtractTextFromFile:
         :return: text present in txt file
         """
 
-        self.text = self.read_file(self.filepath)
+        self.text = self.read_file()
 
     def read_html(self):
         """
@@ -120,7 +127,7 @@ class ExtractTextFromFile:
         :return: text present in html file
         """
 
-        self.text = self.read_file(self.filepath)
+        self.text = self.read_file()
         self.text = html2text.html2text(self.text)
         return self
 
