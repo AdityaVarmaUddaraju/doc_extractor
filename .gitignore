@@ -2,3 +2,5 @@ main.py
 sample.txt
 **__pycache__**
 dist/
+.env
+.idea/
