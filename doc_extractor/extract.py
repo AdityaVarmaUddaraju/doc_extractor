@@ -5,103 +5,143 @@ Extract text content from files such as pdf, docx, txt etc.
 """
 import os
 
-import pdfplumber
 import docx2txt
 import html2text
 from PyPDF2 import PdfReader
+from enum import Enum
+from tika import parser
+import re
 
 
-def get_file_ext(filepath) -> str:
+class PdfExtractors(Enum):
     """
-    Get extention of the file 
-    
+    Enum class for pdf extractors
+    """
+    PDFREADER = 'PDFREADER'
+    TIKA = 'TIKA'
+
+
+def get_file_ext(filepath: str) -> str:
+    """
+    Get extension of the file
+
     :param filepath: path of the paths
-    :return: file extention
+    :return: file extension
     """
     split_tup = os.path.splitext(filepath)
     return split_tup[1]
 
-def read_file(filepath) -> str:
+
+class ExtractTextFromFile:
     """
-    Read content from a file
-    
-    :param filepath: path to file
-    :return: file content
+    Extract text from file
     """
 
-    text = ""
-    with open(filepath, 'r') as f:
-        text = f.read()
+    text: str = ''
 
-    return text
+    def __init__(self, filepath: str, pdf_extractor: PdfExtractors = PdfExtractors.TIKA):
+        self.filepath = filepath
+        self.pdf_extractor = pdf_extractor
 
-def read_pdf(filepath) -> str:
-    """
-    Extract text from pdf files
+    def extract(self):
+        """
+        Extract text from file
 
-    :param filepath: filepath to the pdf file
-    :return: text present in pdf
-    """
-    text = ""
-    
-    reader = PdfReader(filepath)
-    
-    for page in reader.pages:
-        text += page.extract_text()
+        :return: text present in the file
+        """
 
-    return text.strip()
+        file_ext = get_file_ext(self.filepath)
 
-def read_docx(filepath) -> str:
-    """
-    Extract text from docx files
-    
-    :param filepath: filepath to the docx file
-    :return: text present in docx file
-    """
+        if file_ext == '.pdf':
+            self.read_pdf(self.filepath)
 
-    text = docx2txt.process(filepath)
-    return text.strip()
+        return self
 
-def read_txt(filepath) -> str:
-    """
-    Extract text from txt file
-    
-    :param filepath: filepath to txt file
-    :return: text present in txt file
-    """
+    def read_file(self, filepath: str) -> str:
+        """
+        Read content from a file
 
-    text = read_file(filepath)
+        :param filepath: path to file
+        :return: file content
+        """
 
-    return text.strip()
+        text = ""
+        with open(filepath, 'r') as f:
+            text = f.read()
 
-def read_html(filepath) -> str:
-    """
-    Extract text from a html file
-    
-    :param filepath: filepath to html file
-    :return: text present in html file
-    """
+        return text
 
-    html = read_file(filepath)
-    text = html2text.html2text(html)
+    def read_pdf(self, filepath: str):
+        """
+        Extract text from pdf files
 
-    return text.strip()
+        :param filepath: filepath to the pdf file
+        :return: text present in pdf
+        """
+        text = ""
 
-def extract_doc(filepath) -> str:
-    """
-    Extract text from documents such as pdf, docx, txt etc
+        if self.pdf_extractor == PdfExtractors.PDFREADER:
+            reader = PdfReader(filepath)
 
-    :param filepath: filepath to the document from which text needs to be extracted
-    :return: text present in the document
-    """
+            for page in reader.pages:
+                text += page.extract_text()
 
-    ext = get_file_ext(filepath)
+            self.text = text.strip()
+        elif self.pdf_extractor == PdfExtractors.TIKA:
+            parsed = parser.from_file(filepath)
+            self.text = parsed["content"]
 
-    if ext == '.pdf':
-        return read_pdf(filepath)
-    elif ext == '.docx':
-        return read_docx(filepath)
-    elif ext == '.txt':
-        return read_txt(filepath)
-    elif ext == '.html':
-        return read_html(filepath)
+        return self
+
+    def read_docx(self, filepath: str):
+        """
+        Extract text from docx files
+
+        :param filepath: filepath to the docx file
+        :return: text present in docx file
+        """
+
+        self.text = docx2txt.process(filepath)
+        return self
+
+    def read_txt(self):
+        """
+        Extract text from txt file
+
+        :return: text present in txt file
+        """
+
+        self.text = self.read_file(self.filepath)
+
+    def read_html(self):
+        """
+        Extract text from a html file
+
+        :return: text present in html file
+        """
+
+        self.text = self.read_file(self.filepath)
+        self.text = html2text.html2text(self.text)
+        return self
+
+    def clean_text(self):
+        """
+        Clean text by removing extra spaces, tabs, newlines using regex
+
+        :return: self
+        """
+
+        self.text = re.sub(r'\t+', ' ', self.text)
+        self.text = re.sub(r'\n\s+', '\n', self.text)
+
+        self.text = self.text.strip()
+
+        return self
+
+    def get_text(self) -> str:
+        """
+        Get text
+
+        :return: text
+        """
+        return self.text
