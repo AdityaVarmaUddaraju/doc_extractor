@@ -140,6 +140,7 @@ class ExtractTextFromFile:
 
         self.text = re.sub(r'\t+', ' ', self.text)
         self.text = re.sub(r'\n\s+', '\n', self.text)
+        self.text = re.sub(r'\s+\n', '\n', self.text)
 
         self.text = self.text.strip()
 

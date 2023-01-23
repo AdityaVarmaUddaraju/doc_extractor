@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "doc-extractor"
-version = "0.2.2"
+version = "0.2.3"
 description = ""
 authors = ["Aditya Varma Uddaraju <adithya951@gmail.com>"]
 readme = "README.md"
